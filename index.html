@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Culture Connect Chatbot</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .chatbox {
+            height: 350px;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            line-height: 1.4;
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background-color: #4b6cb7;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .bot-message {
+            align-self: flex-start;
+            background-color: #f1f1f1;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .input-area {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background-color: #f9f9f9;
+        }
+        
+        #message {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 16px;
+        }
+        
+        #message:focus {
+            border-color: #4b6cb7;
+        }
+        
+        button {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 15px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+        
+        .suggestion {
+            background-color: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .suggestion:hover {
+            background-color: #4b6cb7;
+            color: white;
+        }
+        
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background-color: #f1f1f1;
+            color: #333;
+            border-bottom-left-radius: 5px;
+            padding: 10px 15px;
+            border-radius: 18px;
+        }
+        
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #777;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite both;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Culture Connect Chatbot</h1>
+            <p>Ask about cultural differences in communication</p>
+        </div>
+        
+        <div class="chatbox" id="chatbox">
+            <div class="message bot-message">
+                Hi! I'm here to help you understand cultural communication differences. Try asking about food, greetings, eye contact, or silence across cultures.
+            </div>
+        </div>
+        
+        <div class="suggestions">
+            <div class="suggestion" onclick="insertSuggestion('food customs')">Food customs</div>
+            <div class="suggestion" onclick="insertSuggestion('greeting traditions')">Greeting traditions</div>
+            <div class="suggestion" onclick="insertSuggestion('eye contact')">Eye contact</div>
+            <div class="suggestion" onclick="insertSuggestion('silence in conversation')">Silence</div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="message" placeholder="Type your message here..." autocomplete="off">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <div class="typing-indicator" id="typing">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <script>
+        const chatbox = document.getElementById('chatbox');
+        const messageInput = document.getElementById('message');
+        const typingIndicator = document.getElementById('typing');
+        
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, 'user');
+            
+            // Clear input
+            messageInput.value = '';
+            
+            // Show typing indicator
+            typingIndicator.style.display = 'block';
+            chatbox.appendChild(typingIndicator);
+            chatbox.scrollTop = chatbox.scrollHeight;
+            
+            // Send to API
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Remove typing indicator
+                typingIndicator.style.display = 'none';
+                
+                // Add bot response after a short delay for natural feel
+                setTimeout(() => {
+                    addMessage(data.response, 'bot');
+                }, 500);
+            })
+            .catch(error => {
+                // Remove typing indicator
+                typingIndicator.style.display = 'none';
+                
+                addMessage("Sorry, I'm having trouble connecting to the server. Make sure the backend is running on port 8000.", 'bot');
+                console.error('Error:', error);
+            });
+        }
+        
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender + '-message');
+            messageDiv.textContent = text;
+            chatbox.appendChild(messageDiv);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+        
+        function insertSuggestion(text) {
+            messageInput.value = text;
+            messageInput.focus();
+        }
+        
+        // Press Enter to send message
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Focus input on load
+        messageInput.focus();
+    </script>
+</body>
+</html>
